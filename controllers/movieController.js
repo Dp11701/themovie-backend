@@ -57,7 +57,7 @@ const addFavoriteMovie = asyncHandler(async (req, res) => {
   try {
     const { movieId } = req.body;
     const email = req.user.email; // Lấy id của người dùng từ token
-    console.log(userId);
+    console.log(email);
 
     if (!movieId) {
       res.status(400);
@@ -96,11 +96,36 @@ const addFavoriteMovie = asyncHandler(async (req, res) => {
 //@access private
 const getFavoriteMovies = asyncHandler(async (req, res) => {
   try {
-    const _id = req.user.id; // Lấy id người dùng từ token
+    const email = req.user.email; // Lấy email người dùng từ token
 
-    const favoriteMovies = await FavoriteMovie.find({ userId });
+    // Lấy danh sách các bộ phim yêu thích của người dùng
+    const favoriteMovies = await FavoriteMovie.find({ email });
 
-    res.status(200).json(favoriteMovies);
+    // Lấy dữ liệu các bộ phim từ API của TMDb
+    const url =
+      "https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc";
+    const apiKey = process.env.TMDB_API_KEY;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        accept: "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+    const data = await response.json();
+
+    // So sánh movieId và lưu các bộ phim trùng khớp vào mảng matchedMovies
+    const matchedMovies = [];
+    for (const movie of data.results) {
+      if (
+        favoriteMovies.some((favorite) => favorite.movieId === String(movie.id))
+      ) {
+        matchedMovies.push(movie);
+      }
+    }
+
+    res.json(matchedMovies);
   } catch (error) {
     console.error("Error:", error);
     res

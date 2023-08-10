@@ -13,7 +13,6 @@ const favoriteMovieSchema = new mongoose.Schema(
       required: [true, "Please add a movieId"],
     },
   },
-  { _id: false },
   {
     timestamps: true,
   }
