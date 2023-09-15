@@ -5,19 +5,25 @@ const {
   getTV,
   addFavoriteMovie,
   getFavoriteMovies,
+  deleteFavoriteMovie,
+  searchMovies,
+  getMovieById
 } = require("../controllers/movieController");
 const {
   addComment,
   getCommentsAndRatingsByMovie,
 } = require("../controllers/evaluateController");
-const validateToken = require("../middleware/validateTokenHandler");
+const  validateToken  = require("../middleware/validateTokenHandler");
 
 // Lấy danh sách phim và TV
 router.get("/movies", getMovies);
 router.get("/tv", getTV);
+router.get("/movies/:id", getMovieById);
+router.get("/search", searchMovies);
+
 
 // Thêm phim vào danh sách yêu thích
-router.post("/favorite", validateToken, addFavoriteMovie);
+router.post("/favorites", validateToken, addFavoriteMovie);
 
 // Lấy danh sách các phim yêu thích
 router.get("/favorites", validateToken, getFavoriteMovies);
@@ -26,5 +32,7 @@ router.post("/comments", validateToken, addComment);
 
 // Lấy danh sách bình luận và đánh giá cho bộ phim
 router.get("/comments/:movieId", getCommentsAndRatingsByMovie);
+
+router.delete("/favorites/:movieId", validateToken, deleteFavoriteMovie);
 
 module.exports = router;

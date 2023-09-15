@@ -26,6 +26,30 @@ const getMovies = asyncHandler(async (req, res) => {
     res.status(500).json({ error: "An error occurred" });
   }
 });
+//@desc GET the movie TMDb API by id
+//@route GET /api/movies/:id
+//@access private
+
+const getMovieById = asyncHandler(async (req, res) => {
+  const movieId = req.params.id; // Lấy ID phim từ đường dẫn
+  const url =
+    `https://api.themoviedb.org/3/movie/${movieId}?language=en-US`;
+  const apiKey = process.env.TMDB_API_KEY;
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        accept: "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: "An error occurred" });
+  }
+});
 
 //@desc GET the TV TMDb API
 //@route GET /api/movies
@@ -50,6 +74,7 @@ const getTV = asyncHandler(async (req, res) => {
     res.status(500).json({ error: "An error occurred" });
   }
 });
+
 //@desc ADD favorite movie
 //@route POST /api/movies/favorite
 //@access private
@@ -57,14 +82,13 @@ const addFavoriteMovie = asyncHandler(async (req, res) => {
   try {
     const { movieId } = req.body;
     const email = req.user.email; // Lấy id của người dùng từ token
-    console.log(email);
 
     if (!movieId) {
       res.status(400);
       throw new Error("All fields are mandatory !");
     }
 
-    const movieAvailable = await FavoriteMovie.findOne({ movieId });
+    const movieAvailable = await FavoriteMovie.findOne({ email, movieId });
 
     if (movieAvailable) {
       res.status(400);
@@ -91,6 +115,30 @@ const addFavoriteMovie = asyncHandler(async (req, res) => {
       .json({ error: "An error occurred", details: error.message });
   }
 });
+
+//@desc GET the movie search
+//@route GET /api/movies/search
+//@access private
+const searchMovies = asyncHandler(async (req, res) => {
+  const query = req.query.q; // Lấy từ khóa tìm kiếm từ query string
+  const url = `https://api.themoviedb.org/3/search/movie?query=${query}&include_adult=false&language=en-US&page=1`;
+  const apiKey = process.env.TMDB_API_KEY;
+
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        accept: "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: "An error occurred" });
+  }
+});
+
 //@desc GET the movie favorite
 //@route GET /api/movies/favorites
 //@access private
@@ -133,4 +181,43 @@ const getFavoriteMovies = asyncHandler(async (req, res) => {
       .json({ error: "An error occurred", details: error.message });
   }
 });
-module.exports = { getMovies, getTV, addFavoriteMovie, getFavoriteMovies };
+
+//@desc DELETE favorite movie
+//@route DELETE /api/movies/favorite/:movieId
+//@access private
+const deleteFavoriteMovie = asyncHandler(async (req, res) => {
+  try {
+    const { movieId } = req.body;
+    const email = req.user.email; // Lấy id của người dùng từ token
+    console.log(email);
+
+    if (!movieId) {
+      res.status(400);
+      throw new Error("Movie ID is required");
+    }
+
+    const favorite = await FavoriteMovie.findOneAndDelete({ email, movieId });
+
+    if (favorite) {
+      res.status(200).json({ message: "Favorite movie deleted successfully" });
+    } else {
+      res.status(404);
+      throw new Error("Favorite movie not found");
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred", details: error.message });
+  }
+});
+
+module.exports = {
+  getMovies,
+  getTV,
+  addFavoriteMovie,
+  getFavoriteMovies,
+  deleteFavoriteMovie,
+  searchMovies,
+  getMovieById,
+};
