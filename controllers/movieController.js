@@ -32,8 +32,7 @@ const getMovies = asyncHandler(async (req, res) => {
 
 const getMovieById = asyncHandler(async (req, res) => {
   const movieId = req.params.id; // Lấy ID phim từ đường dẫn
-  const url =
-    `https://api.themoviedb.org/3/movie/${movieId}?language=en-US`;
+  const url = `https://api.themoviedb.org/3/movie/${movieId}?language=en-US`;
   const apiKey = process.env.TMDB_API_KEY;
 
   try {
@@ -211,6 +210,33 @@ const deleteFavoriteMovie = asyncHandler(async (req, res) => {
       .json({ error: "An error occurred", details: error.message });
   }
 });
+//@desc Check if a movie is a favorite
+//@route GET /api/movies/favorite/check/:movieId
+//@access private
+const checkFavoriteMovie = asyncHandler(async (req, res) => {
+  try {
+    const { movieId } = req.params;
+    const email = req.user.email; // Get user email from token
+
+    if (!movieId) {
+      res.status(400);
+      throw new Error("Movie ID is required");
+    }
+
+    const favorite = await FavoriteMovie.findOne({ email, movieId });
+
+    if (favorite) {
+      res.status(200).json({ isFavorite: true });
+    } else {
+      res.status(200).json({ isFavorite: false });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res
+      .status(500)
+      .json({ error: "An error occurred", details: error.message });
+  }
+});
 
 module.exports = {
   getMovies,
@@ -220,4 +246,5 @@ module.exports = {
   deleteFavoriteMovie,
   searchMovies,
   getMovieById,
+  checkFavoriteMovie,
 };
