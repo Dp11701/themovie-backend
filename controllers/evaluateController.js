@@ -6,14 +6,13 @@ const Comment = require("../models/evaluateModel");
 //@access private
 const addComment = asyncHandler(async (req, res) => {
   try {
-    const { movieId, content, rating } = req.body;
+    const { movieId, content } = req.body;
     const userId = req.user.id; // Lấy id của người dùng từ token
 
     const comment = await Comment.create({
       userId,
       movieId,
       content,
-      rating,
     });
 
     res.status(201).json(comment);

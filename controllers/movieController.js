@@ -119,7 +119,7 @@ const addFavoriteMovie = asyncHandler(async (req, res) => {
 //@route GET /api/movies/search
 //@access private
 const searchMovies = asyncHandler(async (req, res) => {
-  const query = req.query.q; // Lấy từ khóa tìm kiếm từ query string
+  const query = encodeURIComponent(req.query.q); // Mã hóa từ khóa tìm kiếm
   const url = `https://api.themoviedb.org/3/search/movie?query=${query}&include_adult=false&language=en-US&page=1`;
   const apiKey = process.env.TMDB_API_KEY;
 
@@ -137,7 +137,6 @@ const searchMovies = asyncHandler(async (req, res) => {
     res.status(500).json({ error: "An error occurred" });
   }
 });
-
 //@desc GET the movie favorite
 //@route GET /api/movies/favorites
 //@access private
